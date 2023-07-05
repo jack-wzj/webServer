@@ -8,6 +8,7 @@
 using namespace std;
 
 void errif(bool, const char *);
+constexpr int READ_BUFFER_SIZE = 1024;
 
 int main() {
     // 建立一个socket套接字，对外提供一个网络通信接口
@@ -29,7 +30,7 @@ int main() {
     // 向服务器发送数据
     while (true) {
         // 缓冲区初始化
-        char buffer[1024];
+        char buffer[READ_BUFFER_SIZE]; // buffer 大小要大于等于服务器的缓冲区大小，否则会出现粘包问题
         bzero(&buffer, sizeof(buffer));
         // 读取用户输入
         scanf("%s", buffer);
