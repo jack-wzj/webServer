@@ -9,10 +9,10 @@
 #include "InetAddress.h"
 #include "Socket.h"
 #include "Epoll.h"
+#include "Channel.h"
 
 using namespace std;
 
-void errif(bool, const char *);
 void handleReadEvent(int);
 
 constexpr int MAX_EVENTS = 10;
@@ -27,21 +27,26 @@ int main() {
     Epoll *ep = new Epoll();
     serv_sock->setNoBlocking();
     // 将监听的文件描述符加入epoll实例
-    ep->addFd(serv_sock->getFd(), EPOLLIN | EPOLLET);
+    // ep->addFd(serv_sock->getFd(), EPOLLIN | EPOLLET);
+    Channel *serv_channel = new Channel(ep, serv_sock->getFd());
+    serv_channel->enableReading();
+    
     // 不断监听epoll上的事件
     while (true) {
-        vector<epoll_event> events = ep->poll();
-        int nfds = events.size(); // nfds 为就绪的文件描述符数量
+        vector<Channel *> activeChannels = ep->poll();
+        int nfds = activeChannels.size(); // nfds 为就绪的文件描述符数量
         for (int i = 0; i < nfds; i++) {
-            if (events[i].data.fd == serv_sock->getFd()) {  //发生事件的fd是服务器socket fd，表示有新客户端连接
+            if (activeChannels[i]->getFd() == serv_sock->getFd()) {  //发生事件的fd是服务器socket fd，表示有新客户端连接
                 InetAddress *client_addr = new InetAddress();   // 没有 delete
                 Socket *client_sock = new Socket(serv_sock->accept(client_addr));
                 printf("new client fd %d IP: %s Port: %d\n", client_sock->getFd(), inet_ntoa(client_addr->addr.sin_addr), ntohs(client_addr->addr.sin_port));
                 client_sock->setNoBlocking(); // 设置为非阻塞
-                ep->addFd(client_sock->getFd(), EPOLLIN | EPOLLET); // 将新连接的客户端socket fd加入epoll实例
+                Channel *client_channel = new Channel(ep, client_sock->getFd());
+                client_channel->enableReading();
+                // ep->addFd(client_sock->getFd(), EPOLLIN | EPOLLET); // 将新连接的客户端socket fd加入epoll实例
             }
-            else if (events[i].events & EPOLLIN) {  // 有数据可读
-                handleReadEvent(events[i].data.fd);
+            else if (activeChannels[i]->getRevents() & EPOLLIN) {  // 有数据可读
+                handleReadEvent(activeChannels[i]->getFd());
             }
             else {
                 printf("unexpected!\n");
