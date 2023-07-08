@@ -2,6 +2,7 @@
 
 class EventLoop;
 class Socket;
+class Acceptor;
 
 class Server {
 public:
@@ -13,4 +14,5 @@ public:
 
 private:
     EventLoop *loop;
+    Acceptor *acceptor;
 };
