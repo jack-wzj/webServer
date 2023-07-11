@@ -6,6 +6,9 @@
 
 constexpr int MAX_EVENTS = 1024;
 
+/**
+ * @brief 构造函数，创建epoll
+ */
 Epoll::Epoll() : epfd(-1), events(nullptr) {
     epfd = epoll_create1(0);
     errif(epfd == -1, "epoll create error");
@@ -13,6 +16,9 @@ Epoll::Epoll() : epfd(-1), events(nullptr) {
     bzero(events, sizeof(epoll_event) * MAX_EVENTS);
 }
 
+/**
+ * @brief 析构函数，关闭epoll
+ */
 Epoll::~Epoll() {
     if (epfd != -1) {
         close(epfd);
@@ -21,14 +27,11 @@ Epoll::~Epoll() {
     delete[] events;
 }
 
-void Epoll::addFd(int fd, uint32_t op) {
-    epoll_event ev;
-    bzero(&ev, sizeof(ev));
-    ev.events = op;
-    ev.data.fd = fd;
-    errif(epoll_ctl(epfd, EPOLL_CTL_ADD, fd, &ev) == -1, "epoll_ctl error");
-}
-
+/**
+ * @brief 调用epoll_wait()，返回发生事件的所有channel
+ * @param timeout 超时时间
+ * @return 发生事件的所有channel
+ */
 std::vector<Channel *> Epoll::poll(int timeout) {
     int nfds = epoll_wait(epfd, events, MAX_EVENTS, timeout);
     errif(nfds == -1, "epoll_wait error");
@@ -41,6 +44,10 @@ std::vector<Channel *> Epoll::poll(int timeout) {
     return ret;
 }
 
+/**
+ * @brief 将 channel 添加/修改到epoll中
+ * @param channel 要添加的channel
+ */
 void Epoll::updateChannel(Channel *channel) {
     int fd = channel->getFd();
     epoll_event ev;
