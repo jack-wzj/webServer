@@ -27,15 +27,17 @@ int main() {
     errif(connect(sockfd, (sockaddr*)&serv_addr, sizeof(serv_addr)) == -1, "connect error!" );
     cout << "connect to server" << endl;
 
+    string buf;
     // 向服务器发送数据
     while (true) {
         // 缓冲区初始化
         char buffer[READ_BUFFER_SIZE]; // buffer 大小要大于等于服务器的缓冲区大小，否则会出现粘包问题
         bzero(&buffer, sizeof(buffer));
         // 读取用户输入
-        scanf("%s", buffer);
+        getline(cin, buf);
+        // scanf("%s", buffer);
         // 向服务器发送数据
-        ssize_t write_bytes = write(sockfd, buffer, sizeof(buffer));
+        ssize_t write_bytes = write(sockfd, buf.c_str(), buf.size());
         if (write_bytes == -1) {
             cout << "socket disconnected, cant write" << endl;
             break;
@@ -55,6 +57,7 @@ int main() {
         else if (read_bytes > 0) {
             cout << "recv: " << buffer << endl;
         }
+        buf.clear();
     }
     close(sockfd);
     return 0;
