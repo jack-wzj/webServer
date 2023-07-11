@@ -75,7 +75,8 @@ uint32_t Channel::getRevents() {
  * @brief 事件发生时的回调函数
  */
 void Channel::handleEvent() {
-    callback();
+    loop->addThread(callback);
+    // callback();
 }
 
 /**

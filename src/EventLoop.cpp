@@ -2,13 +2,15 @@
 #include "Epoll.h"
 #include "Channel.h"
 #include "EventLoop.h"
+#include "ThreadPool.h"
 
 /**
  * @brief EventLoop类的构造函数
  * @details 初始化epoll对象
  */
-EventLoop::EventLoop() : ep(nullptr), quit(false) {
+EventLoop::EventLoop() : ep(nullptr), threadPool(nullptr), quit(false) {
     ep = new Epoll();
+    threadPool = new ThreadPool();
 }
 
 /**
@@ -39,4 +41,13 @@ void EventLoop::loop() {
  */
 void EventLoop::updateChannel(Channel *channel) {
     ep->updateChannel(channel);
+}
+
+/**
+ * @brief 添加线程
+ * @details 添加线程到线程池
+ * @param func 线程执行的函数
+ */
+void EventLoop::addThread(std::function<void()> func) {
+    threadPool->addTask(func);
 }
