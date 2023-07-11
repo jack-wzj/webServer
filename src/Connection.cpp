@@ -7,9 +7,8 @@
 #include "Socket.h"
 #include "Connection.h"
 #include "Channel.h"
-
-// 缓冲区大小
-constexpr int READ_BUFFER_SIZE = 1024;
+#include "Buffer.h"
+#include "util.h"
 
 /**
  * @brief Connection类的构造函数
@@ -21,6 +20,7 @@ Connection::Connection(EventLoop *_loop, Socket *_sock) : loop(_loop), sock(_soc
     std::function<void()> cb = std::bind(&Connection::echo, this, sock->getFd());
     channel->setCallback(cb);   // 设置回调函数
     channel->enableReading();   // 可读事件监听
+    readBuffer = new Buffer();
 }
 
 /**
@@ -29,6 +29,7 @@ Connection::Connection(EventLoop *_loop, Socket *_sock) : loop(_loop), sock(_soc
 Connection::~Connection() {
     delete channel;
     delete sock;
+    delete readBuffer;
 }
 
 /**
@@ -36,7 +37,7 @@ Connection::~Connection() {
  * @param sockfd 客户端套接字描述符
  */
 void Connection::echo(int sockfd) {
-    char buffer[READ_BUFFER_SIZE];
+    char buffer[1024];
     while (true) { // 非阻塞I/O一次读取buf大小的数据，直到全读完
         bzero(&buffer, sizeof(buffer));
         ssize_t read_bytes = read(sockfd, buffer, sizeof(buffer));
@@ -47,7 +48,9 @@ void Connection::echo(int sockfd) {
             break;
         }
         else if (read_bytes == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) { // EAGAIN 表示数据已经读完
-            printf("read done.\n");
+            printf("recv from client fd %d: %s\n", sockfd, readBuffer->c_str());
+            errif(write(sockfd, readBuffer->c_str(), readBuffer->size()) == -1, "write error");
+            readBuffer->clear();
             break;
         }
         else if (read_bytes == -1 && errno == EINTR) { // 表示客户端正常中断，继续读
@@ -55,8 +58,7 @@ void Connection::echo(int sockfd) {
             continue;
         }
         else if (read_bytes > 0) {
-            printf("recv from client fd %d: %s\n", sockfd, buffer);
-            write(sockfd, buffer, sizeof(buffer));
+            readBuffer->append(buffer, read_bytes);
         }
         else {
             printf("unexpected!\n");
