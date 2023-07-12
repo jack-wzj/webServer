@@ -35,7 +35,7 @@ Server::~Server() {
  */
 void Server::newConnection(Socket *client_sock) {
     Connection *conn = new Connection(loop, client_sock);
-    std::function<void(Socket*)> cb = std::bind(&Server::deleteConnection, this, std::placeholders::_1);
+    std::function<void(int)> cb = std::bind(&Server::deleteConnection, this, std::placeholders::_1);
     conn->setDeleteConnectionCallback(cb);
     connections[client_sock->getFd()] = conn;
 }
@@ -45,8 +45,13 @@ void Server::newConnection(Socket *client_sock) {
  * @details 由Connection调用
  * @param sock 客户端套接字
  */
-void Server::deleteConnection(Socket *sock) {
-    Connection *conn = connections[sock->getFd()];
-    connections.erase(sock->getFd());
-    delete conn;
+void Server::deleteConnection(int sockfd) {
+    if (sockfd != -1) {
+        auto it = connections.find(sockfd);
+        if (it != connections.end()) {
+            Connection *conn = it->second;
+            connections.erase(it);
+            delete conn;
+        }
+    }
 }

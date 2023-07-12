@@ -17,7 +17,7 @@ public:
     ~Server();
 
     void newConnection(Socket *);   // 新建TCP连接, 由Acceptor调用
-    void deleteConnection(Socket *);// 断开TCP连接
+    void deleteConnection(int);// 断开TCP连接
 
 private:
     EventLoop *loop;    // 事件循环

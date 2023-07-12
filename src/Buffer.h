@@ -14,6 +14,8 @@ public:
     ssize_t size();
     const char* c_str();
     void clear();
+    void getline();
+    void setBuf(const char*);
 private:
     std::string buf;
 };

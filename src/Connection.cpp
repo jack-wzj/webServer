@@ -17,9 +17,11 @@
  */
 Connection::Connection(EventLoop *_loop, Socket *_sock) : loop(_loop), sock(_sock) {
     channel = new Channel(loop, sock->getFd());
+    channel->enableRead();   // 可读事件监听
+    channel->useET();        // 边缘触发
     std::function<void()> cb = std::bind(&Connection::echo, this, sock->getFd());
-    channel->setCallback(cb);   // 设置回调函数
-    channel->enableReading();   // 可读事件监听
+    channel->setReadCallback(cb);   // 设置回调函数
+    channel->setUseThreadPool(true);
     readBuffer = new Buffer();
 }
 
@@ -44,7 +46,7 @@ void Connection::echo(int sockfd) {
         if (read_bytes == 0) { // EOF 表示客户端关闭连接
             printf("EOF, client %d disconnected\n", sockfd);
             // close(sockfd);
-            deleteConnectionCallback(sock);
+            deleteConnectionCallback(sockfd);
             break;
         }
         else if (read_bytes == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) { // EAGAIN 表示数据已经读完
@@ -71,6 +73,6 @@ void Connection::echo(int sockfd) {
  * @brief 设置删除连接的回调函数
  * @param _cb 回调函数
  */
-void Connection::setDeleteConnectionCallback(std::function<void(Socket*)> _cb) {
+void Connection::setDeleteConnectionCallback(std::function<void(int)> _cb) {
     deleteConnectionCallback = _cb;
 }

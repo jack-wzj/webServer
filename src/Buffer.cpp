@@ -1,5 +1,5 @@
 #include <string>
-#include <cstdio>
+#include <iostream>
 #include "Buffer.h"
 
 /**
@@ -8,7 +8,12 @@
  * @param len 数据长度
  */
 void Buffer::append(const char *data, int len) {
-    buf.append(data, len);
+    for (int i = 0; i < len; ++i) {
+        if (data[i] == '\0') {
+            break;
+        }
+        buf.push_back(data[i]);
+    }
 }
 
 /**
@@ -32,4 +37,21 @@ const char* Buffer::c_str() {
  */
 void Buffer::clear() {
     buf.clear();
+}
+
+/**
+ * @brief 读取一行数据到缓冲区
+ */
+void Buffer::getline() {
+    buf.clear();
+    std::getline(std::cin, buf);
+}
+
+/**
+ * @brief 设置缓冲区数据
+ * @param data 数据
+ */
+void Buffer::setBuf(const char* data) {
+    buf.clear();
+    buf.append(data);
 }

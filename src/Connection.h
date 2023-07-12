@@ -18,12 +18,14 @@ public:
     ~Connection();
 
     void echo(int);
-    void setDeleteConnectionCallback(std::function<void(Socket*)>);
+    void setDeleteConnectionCallback(std::function<void(int)>);
+
+    // void send(int sockfd);
 
 private:
     EventLoop *loop;
     Socket *sock;
     Channel *channel;
-    std::function<void(Socket*)> deleteConnectionCallback;
+    std::function<void(int)> deleteConnectionCallback;
     Buffer *readBuffer;
 };

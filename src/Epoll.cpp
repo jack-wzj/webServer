@@ -38,7 +38,7 @@ std::vector<Channel *> Epoll::poll(int timeout) {
     std::vector<Channel *> ret;
     for (int i = 0; i < nfds; i++) {
         Channel *channel = (Channel *)events[i].data.ptr;
-        channel->setRevents(events[i].events);
+        channel->setReady(events[i].events);
         ret.push_back(channel);
     }
     return ret;
