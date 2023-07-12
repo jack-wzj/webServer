@@ -48,19 +48,3 @@ ThreadPool::~ThreadPool() {
         }
     }
 }
-
-/**
- * @brief 添加任务
- * @details 添加任务到任务队列
- * @param task 任务
- */
-void ThreadPool::addTask(std::function<void()> task) {
-    {
-        std::unique_lock<std::mutex> lock(mutex);
-        if (stop) {
-            throw std::runtime_error("线程池已停止，无法添加任务!");
-        }
-        tasks.emplace(task);
-    }
-    cond.notify_one();
-}
