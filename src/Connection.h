@@ -20,7 +20,7 @@ public:
     void echo(int);
     void setDeleteConnectionCallback(std::function<void(int)>);
 
-    // void send(int sockfd);
+    void send(int sockfd);
 
 private:
     EventLoop *loop;

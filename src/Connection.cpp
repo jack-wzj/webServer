@@ -51,7 +51,8 @@ void Connection::echo(int sockfd) {
         }
         else if (read_bytes == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) { // EAGAIN 表示数据已经读完
             printf("recv from client fd %d: %s\n", sockfd, readBuffer->c_str());
-            errif(write(sockfd, readBuffer->c_str(), readBuffer->size()) == -1, "write error");
+            // errif(write(sockfd, readBuffer->c_str(), readBuffer->size()) == -1, "write error");
+            send(sockfd);
             readBuffer->clear();
             break;
         }
@@ -75,4 +76,18 @@ void Connection::echo(int sockfd) {
  */
 void Connection::setDeleteConnectionCallback(std::function<void(int)> _cb) {
     deleteConnectionCallback = _cb;
+}
+
+void Connection::send(int sockfd) {
+    char buf[readBuffer->size()];
+    strcpy(buf, readBuffer->c_str());
+    int data_size = readBuffer->size();
+    int already_write = 0;
+    while (already_write < data_size) {
+        ssize_t write_bytes = write(sockfd, buf + already_write, data_size - already_write);
+        if (write_bytes == -1 && errno == EAGAIN) {
+            break;
+        }
+        already_write += write_bytes;
+    }
 }
