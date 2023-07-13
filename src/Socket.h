@@ -17,6 +17,7 @@ public:
     void bind(InetAddress *);
     int accept(InetAddress *);
     void listen();
+    void connect(InetAddress *);
     void setNoBlocking();
 
 private:

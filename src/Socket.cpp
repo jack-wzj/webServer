@@ -67,6 +67,15 @@ void Socket::listen() {
 }
 
 /**
+ * @brief 连接
+ * @details 连接服务器
+ * @param serv_addr 服务器地址
+ */
+void Socket::connect(InetAddress *serv_addr) {
+    errif(::connect(sockfd, (sockaddr*)&serv_addr->addr, serv_addr->addr_len) == -1, "connect error");
+}
+
+/**
  * @brief 设置非阻塞
  * @details 设置套接字为非阻塞模式
  */

@@ -34,10 +34,12 @@ Server::~Server() {
  * @param client_sock 客户端套接字
  */
 void Server::newConnection(Socket *client_sock) {
-    Connection *conn = new Connection(loop, client_sock);
-    std::function<void(int)> cb = std::bind(&Server::deleteConnection, this, std::placeholders::_1);
-    conn->setDeleteConnectionCallback(cb);
-    connections[client_sock->getFd()] = conn;
+    if (client_sock->getFd() != -1) {
+        Connection *conn = new Connection(loop, client_sock);
+        std::function<void(int)> cb = std::bind(&Server::deleteConnection, this, std::placeholders::_1);
+        conn->setDeleteConnectionCallback(cb);
+        connections[client_sock->getFd()] = conn;
+    }
 }
 
 /**
