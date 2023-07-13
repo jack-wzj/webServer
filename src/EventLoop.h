@@ -18,10 +18,8 @@ public:
 
     void loop();
     void updateChannel(Channel *);
-    void addThread(std::function<void()>);
     
 private:
     Epoll *ep;
-    ThreadPool *threadPool;
     bool quit;
 };

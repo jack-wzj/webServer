@@ -26,7 +26,6 @@ public:
     void setReadCallback(std::function<void()>);
     void setWriteCallback(std::function<void()>);
     void useET();
-    void setUseThreadPool(bool use = true);
 
 
 private:
@@ -35,7 +34,6 @@ private:
     uint32_t events;  // 监听事件
     uint32_t ready; // 发生的事件
     bool inEpoll;     // 是否在epoll中。Epoll::updateChannel()时判断，如果不在则add到epoll中，否则mod
-    bool useThreadPool;
     // std::function<void()> callback; // 事件发生时的回调函数
     std::function<void()> readCallback;
     std::function<void()> writeCallback;

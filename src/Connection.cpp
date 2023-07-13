@@ -21,7 +21,6 @@ Connection::Connection(EventLoop *_loop, Socket *_sock) : loop(_loop), sock(_soc
     channel->useET();        // 边缘触发
     std::function<void()> cb = std::bind(&Connection::echo, this, sock->getFd());
     channel->setReadCallback(cb);   // 设置回调函数
-    channel->setUseThreadPool(true);
     readBuffer = new Buffer();
 }
 
@@ -50,7 +49,7 @@ void Connection::echo(int sockfd) {
             break;
         }
         else if (read_bytes == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) { // EAGAIN 表示数据已经读完
-            printf("recv from client fd %d: %s\n", sockfd, readBuffer->c_str());
+            printf("client fd %d: %s\n", sockfd, readBuffer->c_str());
             // errif(write(sockfd, readBuffer->c_str(), readBuffer->size()) == -1, "write error");
             send(sockfd);
             readBuffer->clear();

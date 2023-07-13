@@ -8,7 +8,7 @@
  * @param _loop 事件循环
  * @param fd 文件描述符
  */
-Channel::Channel(EventLoop *_loop, int fd) : loop(_loop), fd(fd), events(0), ready(0), inEpoll(false), useThreadPool(true) {
+Channel::Channel(EventLoop *_loop, int fd) : loop(_loop), fd(fd), events(0), ready(0), inEpoll(false) {
 }
 
 /**
@@ -89,28 +89,12 @@ uint32_t Channel::getReady() {
  */
 void Channel::handleEvent() {
     if (ready & (EPOLLIN | EPOLLPRI)) {
-        if (useThreadPool) {
-            loop->addThread(readCallback);
-        } else {
-            readCallback();
-        }
+        readCallback();
     }
     if (ready & EPOLLOUT) {
-        if (useThreadPool) {
-            loop->addThread(writeCallback);
-        } else {
-            writeCallback();
-        }
+        writeCallback();
     }
 }
-
-/**
- * @brief 设置事件发生的回调函数
- * @param callback 回调函数
- */
-// void Channel::setCallback(std::function<void()> callback) {
-//     this->callback = callback;
-// }
 
 /**
  * @brief 设置读事件发生的回调函数
@@ -126,12 +110,4 @@ void Channel::setReadCallback(std::function<void()> callback) {
  */
 void Channel::setWriteCallback(std::function<void()> callback) {
     this->writeCallback = callback;
-}
-
-/**
- * @brief 设置是否使用线程池
- * @param use 是否使用线程池
- */
-void Channel::setUseThreadPool(bool use) {
-    useThreadPool = use;
 }

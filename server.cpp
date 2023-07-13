@@ -2,8 +2,8 @@
 #include "src/EventLoop.h"
 
 int main() {
-    EventLoop *loop = new EventLoop();
-    Server *server = new Server(loop);
-    loop->loop();
+    EventLoop *mainReactor = new EventLoop();
+    Server *server = new Server(mainReactor);
+    mainReactor->loop();
     return 0;
 }
