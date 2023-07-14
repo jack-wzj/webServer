@@ -4,25 +4,24 @@
 #include <functional>
 #include "src/util.h"
 #include "src/Buffer.h"
-#include "src/InetAddress.h"
 #include "src/Socket.h"
 #include "src/ThreadPool.h"
 
 using namespace std;
 
-void oneClient(int epochs, int wait){
+void oneClient(int epochs, int wait) {
     Socket *sock = new Socket();
     InetAddress *addr = new InetAddress("127.0.0.1", 8099);
     sock->connect(addr);
 
     int sockfd = sock->getFd();
-
+    
     Buffer *sendBuf = new Buffer();
     Buffer *recvBuf = new Buffer();
-
+    
     sleep(wait);
     int count = 0;
-    while(count < epochs){
+    while(count < epochs) {
         sendBuf->setBuf("Hello server! I'm client!");
         ssize_t write_bytes = write(sockfd, sendBuf->c_str(), sendBuf->size());
         if(write_bytes == -1){
@@ -34,7 +33,7 @@ void oneClient(int epochs, int wait){
         while(true){
             bzero(&buf, sizeof(buf));
             ssize_t read_bytes = read(sockfd, buf, sizeof(buf));
-            if(read_bytes > 0){
+            if(read_bytes > 0) {
                 recvBuf->append(buf, read_bytes);
                 already_read += read_bytes;
             } else if(read_bytes == 0){         //EOF

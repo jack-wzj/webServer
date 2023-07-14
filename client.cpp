@@ -3,12 +3,9 @@
 #include <unistd.h>
 #include "src/util.h"
 #include "src/Buffer.h"
-#include "src/InetAddress.h"
 #include "src/Socket.h"
 
 using namespace std;
-
-constexpr int READ_BUFFER_SIZE = 1024;
 
 int main() {
     // 建立一个socket套接字，对外提供一个网络通信接口
@@ -16,8 +13,10 @@ int main() {
     InetAddress *addr = new InetAddress("127.0.0.1", 8099);
     sock->connect(addr);
 
-    int sockfd = sock->getFd();
+    printf("new client coming, fd: %d\n", sock->getFd());
 
+    int sockfd = sock->getFd();
+    
     // 读写缓冲区
     Buffer *sendBuf = new Buffer();
     Buffer *recvBuf = new Buffer();
