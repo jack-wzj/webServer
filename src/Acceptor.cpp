@@ -1,9 +1,8 @@
 #include <cstdio>
 #include "Acceptor.h"
 #include "Socket.h"
-#include "InetAddress.h"
 #include "Channel.h"
-#include "Server.h"
+
 
 Acceptor::Acceptor(EventLoop *_loop) : loop(_loop), sock(nullptr), acceptChannel(nullptr) {
     sock = new Socket();
@@ -26,7 +25,7 @@ Acceptor::~Acceptor() {
 void Acceptor::acceptConnection() {
     InetAddress *client_addr = new InetAddress();
     Socket *client_sock = new Socket(sock->accept(client_addr));
-    printf("new client fd %d IP: %s Port: %d\n", client_sock->getFd(), inet_ntoa(client_addr->addr.sin_addr), ntohs(client_addr->addr.sin_port));
+    printf("new client fd %d IP: %s Port: %d\n", client_sock->getFd(), client_addr->getIP(), client_addr->getPort());
     client_sock->setNoBlocking(); // 设置为非阻塞
     newConnectionCallback(client_sock);
     delete client_addr;

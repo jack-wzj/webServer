@@ -3,7 +3,6 @@
 #include "EventLoop.h"
 #include "Socket.h"
 #include "Server.h"
-#include "InetAddress.h"
 #include "Channel.h"
 #include "Acceptor.h"
 #include "Connection.h"
@@ -14,7 +13,7 @@
   * @details 构造Server对象，初始化接收器
   * @param _loop 事件循环对象
   */
-Server::Server(EventLoop *_loop) : mainReactor(_loop), acceptor(nullptr), threadPool(nullptr) {
+Server::Server(EventLoop *_loop) : mainReactor(_loop), acceptor(nullptr) {
     acceptor = new Acceptor(mainReactor);   // 接收器只由 mainReactor 管理
     // 将新连接的处理函数绑定到Acceptor的回调函数中
     std::function<void(Socket*)> cb = std::bind(&Server::newConnection, this, std::placeholders::_1);
@@ -50,8 +49,8 @@ void Server::newConnection(Socket *client_sock) {
     if (client_sock->getFd() != -1) {
         // TODO: subReactor 调度算法有没有更好的?
         // 随机调度，选择一个 subReactor 处理新连接
-        EventLoop *loop = subReactors[client_sock->getFd() % subReactors.size()];
-        Connection *conn = new Connection(loop, client_sock);
+        int random = client_sock->getFd() % subReactors.size();
+        Connection *conn = new Connection(subReactors[random], client_sock);
         std::function<void(int)> cb = std::bind(&Server::deleteConnection, this, std::placeholders::_1);
         conn->setDeleteConnectionCallback(cb);
         connections[client_sock->getFd()] = conn;
@@ -68,7 +67,7 @@ void Server::deleteConnection(int sockfd) {
         auto it = connections.find(sockfd);
         if (it != connections.end()) {
             Connection *conn = it->second;
-            connections.erase(it);
+            connections.erase(sockfd);
             // close(sockfd);
             delete conn;  
         }

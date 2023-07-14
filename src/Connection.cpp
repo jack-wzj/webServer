@@ -15,7 +15,7 @@
  * @param _loop 事件循环对象
  * @param _sock Socket对象
  */
-Connection::Connection(EventLoop *_loop, Socket *_sock) : loop(_loop), sock(_sock) {
+Connection::Connection(EventLoop *_loop, Socket *_sock) : loop(_loop), sock(_sock), channel(nullptr), readBuffer(nullptr) {
     channel = new Channel(loop, sock->getFd());
     channel->enableRead();   // 可读事件监听
     channel->useET();        // 边缘触发
@@ -44,7 +44,6 @@ void Connection::echo(int sockfd) {
         ssize_t read_bytes = read(sockfd, buffer, sizeof(buffer));
         if (read_bytes == 0) { // EOF 表示客户端关闭连接
             printf("EOF, client %d disconnected\n", sockfd);
-            // close(sockfd);
             deleteConnectionCallback(sockfd);
             break;
         }
@@ -63,7 +62,8 @@ void Connection::echo(int sockfd) {
             readBuffer->append(buffer, read_bytes);
         }
         else {
-            printf("unexpected!\n");
+            printf("Connection reset!\n");
+            deleteConnectionCallback(sockfd);
             break;
         }
     }

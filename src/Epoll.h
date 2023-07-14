@@ -17,7 +17,6 @@ public:
     std::vector<Channel *> poll(int timeout = -1);  // 调用epoll_wait()，返回发生事件的所有channel
     void updateChannel(Channel *);  // 将channel添加到epoll中
 
-
 private:
     int epfd;
     epoll_event *events;

@@ -18,11 +18,10 @@ public:
     uint32_t getEvents();
     uint32_t getReady();
     bool isInEpoll();
-    void setInEpoll();
+    void setInEpoll(bool _in = true);
     void setReady(uint32_t);
 
     void handleEvent();
-    // void setCallback(std::function<void()>);
     void setReadCallback(std::function<void()>);
     void setWriteCallback(std::function<void()>);
     void useET();

@@ -2,13 +2,15 @@
 #include "util.h"
 #include "EventLoop.h"
 #include <unistd.h>
+#include <cstdio>
 
 /**
  * @brief Channel类构造函数
  * @param _loop 事件循环
- * @param fd 文件描述符
+ * @param _fd 文件描述符
  */
-Channel::Channel(EventLoop *_loop, int fd) : loop(_loop), fd(fd), events(0), ready(0), inEpoll(false) {
+Channel::Channel(EventLoop *_loop, int _fd) 
+    : loop(_loop), fd(_fd), events(0), ready(0), inEpoll(false) {
 }
 
 /**
@@ -32,8 +34,8 @@ int Channel::getFd() {
 /**
  * @brief 设置已在epoll中
  */
-void Channel::setInEpoll() {
-    inEpoll = true;
+void Channel::setInEpoll(bool _in) {
+    inEpoll = _in;
 }
 
 /**
@@ -48,8 +50,8 @@ bool Channel::isInEpoll() {
  * @brief 设置发生的事件
  * @param ready 发生的事件
  */
-void Channel::setReady(uint32_t ready) {
-    this->ready = ready;
+void Channel::setReady(uint32_t _rd) {
+    ready = _rd;
 }
 
 /**
@@ -91,8 +93,11 @@ void Channel::handleEvent() {
     if (ready & (EPOLLIN | EPOLLPRI)) {
         readCallback();
     }
-    if (ready & EPOLLOUT) {
+    else if (ready & EPOLLOUT) {
         writeCallback();
+    }
+    else {
+        printf("unexpected handleEvent! %d %d %d\n", ready & EPOLLIN, ready & EPOLLPRI, ready);
     }
 }
 
