@@ -3,8 +3,8 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <iostream>
+#include <cstring>
 #include "util.h"
-#include "InetAddress.h"
 #include "Socket.h"
 
 /**
@@ -21,7 +21,7 @@ Socket::Socket() : sockfd(-1){
  * @details 从已有的套接字创建
  * @param fd 已有的套接字
  */
-Socket::Socket(int fd) : sockfd(fd) {
+Socket::Socket(int _fd) : sockfd(_fd) {
     errif(sockfd == -1, "socket create error");
 }
 
@@ -42,7 +42,8 @@ Socket::~Socket() {
  * @param serv_addr 地址
  */
 void Socket::bind(InetAddress *serv_addr) {
-    errif(::bind(sockfd, (sockaddr*)&serv_addr->addr, serv_addr->addr_len) == -1, "bind error");
+    sockaddr_in addr = serv_addr->getAddr();
+    errif(::bind(sockfd, (sockaddr*)&addr, sizeof(addr)) == -1, "bind error");
 }
 
 /**
@@ -52,10 +53,31 @@ void Socket::bind(InetAddress *serv_addr) {
  * @return 客户端的套接字
  */
 int Socket::accept(InetAddress *client_addr) {
-    int connfd = ::accept(sockfd, (sockaddr*)&client_addr->addr, &client_addr->addr_len);
-    errif(connfd == -1, "accept error");
-    return connfd;
-    // printf("new client fd %d IP: %s Port: %d\n", connfd, inet_ntoa(client_addr->getAddr().sin_addr), ntohs(client_addr->getAddr().sin_port));
+    int clientfd = -1;
+    sockaddr_in addr;
+    bzero(&addr, sizeof(addr));
+    socklen_t addr_len = sizeof(addr);
+    if (fcntl(sockfd, F_GETFL) & O_NONBLOCK) {
+        while (true) {
+            clientfd = ::accept(sockfd, (sockaddr*)&addr, &addr_len);
+            if (clientfd == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+                continue;
+            }
+            else if (clientfd == -1) {
+                errif(true, "socket accept error");
+            }
+            else {
+                break;
+            }
+        }
+    }
+    else {
+        clientfd = ::accept(sockfd, (sockaddr*)&addr, &addr_len);
+        errif(clientfd == -1, "socket accept error");
+    }
+
+    client_addr->setInetAddr(addr);
+    return clientfd;
 }
 
 /**
@@ -72,7 +94,24 @@ void Socket::listen() {
  * @param serv_addr 服务器地址
  */
 void Socket::connect(InetAddress *serv_addr) {
-    errif(::connect(sockfd, (sockaddr*)&serv_addr->addr, serv_addr->addr_len) == -1, "connect error");
+    sockaddr_in addr = serv_addr->getAddr();
+    if (fcntl(sockfd, F_GETFL) & O_NONBLOCK) {
+        while (true) {
+            int ret = ::connect(sockfd, (sockaddr*)&addr, sizeof(addr));
+            if (ret == 0) {
+               break;
+            }
+            else if (ret == -1 && (errno == EINPROGRESS)) {
+                continue;
+            }
+            else if (ret == -1) {
+                errif(true, "socket connect error");
+            }
+        }
+    }
+    else {
+        errif(::connect(sockfd, (sockaddr*)&addr, sizeof(addr)) == -1, "socket connect error");
+    }
 }
 
 /**
@@ -92,3 +131,56 @@ int Socket::getFd() {
     return sockfd;
 }
 
+
+/**
+ * @brief 构造函数
+ * @details 初始化addr_len为sockaddr_in结构体的大小，将addr置零
+ */
+InetAddress::InetAddress() {
+    bzero(&addr, sizeof(addr));
+}
+
+/**
+ * @brief 构造函数
+ * @details 初始化addr_len为sockaddr_in结构体的大小，将addr置零，设置addr的ip和port
+ * @param ip ip地址
+ * @param port 端口号
+ */
+InetAddress::InetAddress(const char *ip, uint16_t port) {
+    bzero(&addr, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_port = htons(port);
+    addr.sin_addr.s_addr = inet_addr(ip);
+}
+
+/**
+ * @brief 设置地址
+ * @param _addr 地址
+ */
+void InetAddress::setInetAddr(sockaddr_in _addr) {
+    addr = _addr;
+}
+
+/**
+ * @brief 获取地址
+ * @return 地址
+ */
+sockaddr_in InetAddress::getAddr() {
+    return addr;
+}
+
+/**
+ * @brief 获取ip地址
+ * @return ip地址
+ */
+char* InetAddress::getIP() {
+    return inet_ntoa(addr.sin_addr);
+}
+
+/**
+ * @brief 获取端口号
+ * @return 端口号
+ */
+uint16_t InetAddress::getPort() {
+    return ntohs(addr.sin_port);
+}
