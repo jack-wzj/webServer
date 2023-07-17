@@ -117,6 +117,10 @@ void Socket::setNoBlocking() {
   fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFL) | O_NONBLOCK);
 }
 
+bool Socket::isNoBlocking() {
+  return (fcntl(sockfd, F_GETFL) & O_NONBLOCK) != 0;
+}
+
 /**
  * @brief 获取套接字
  * @details 获取套接字 fd

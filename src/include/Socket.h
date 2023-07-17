@@ -33,6 +33,7 @@ public:
   void listen();
   void connect(InetAddress *);
   void setNoBlocking();
+  bool isNoBlocking();
 
 private:
   int sockfd;

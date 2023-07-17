@@ -13,19 +13,48 @@ class Buffer;
 
 class Connection {
 public:
-  Connection() = delete;
+  // 连接状态
+  enum State {
+    Invalid = 1,
+    Handshaking,
+    Connected,
+    Closed,
+    Failed,
+  };
+
   Connection(EventLoop *, Socket *);
   ~Connection();
 
-  void echo(int);
-  void setDeleteConnectionCallback(std::function<void(int)>);
+  void Read();
+  void Write();
 
-  void send(int sockfd);
+  void setDeleteConnectionCallback(std::function<void(Socket *)> const &callback);
+  void SetOnConnectCallback(std::function<void(Connection *)> const &callback);
+
+  State GetState();
+  void Close();
+  void SetSendBuffer(const char *str);
+  Buffer *GetReadBuffer();
+  const char *ReadBuffer();
+  Buffer *GetSendBuffer();
+  const char *SendBuffer();
+  void GetlineSendBuffer();
+  Socket *GetSocket();
 
 private:
   EventLoop *loop;
   Socket *sock;
-  Channel *channel;
-  std::function<void(int)> deleteConnectionCallback;
-  Buffer *readBuffer;
+  Channel *channel =  nullptr;
+  State state = State::Invalid;
+  // 回调函数
+  std::function<void(Socket *)> deleteConnCallback;
+  std::function<void(Connection *)> onConnCallback;
+  // 读写缓冲区
+  Buffer *readBuffer = nullptr;
+  Buffer *writeBuffer = nullptr;
+  // 读写事件处理函数
+  void ReadNonBlocking();
+  void WriteNonBlocking();
+  void ReadBlocking();
+  void WriteBlocking();
 };

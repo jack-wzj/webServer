@@ -6,6 +6,7 @@
 #pragma once
 #include <map>
 #include <vector>
+#include <functional>
 
 class EventLoop;
 class Socket;
@@ -19,7 +20,8 @@ public:
   ~Server();
 
   void newConnection(Socket *); // 新建TCP连接, 由Acceptor调用
-  void deleteConnection(int);   // 断开TCP连接
+  void deleteConnection(Socket *sock);   // 断开TCP连接
+  void OnConnect(std::function<void(Connection *)>);
 
 private:
   EventLoop *mainReactor; // 只负责接受连接，分发给一个 subReactor
@@ -27,4 +29,5 @@ private:
   Acceptor *acceptor;                   // 接收器
   std::map<int, Connection *> connections; // TCP连接
   ThreadPool *threadPool;                  // 线程池
+  std::function<void(Connection *)> onConnCallback;
 };
