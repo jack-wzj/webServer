@@ -3,10 +3,10 @@
 #include "Socket.h"
 #include <cstdio>
 
-Acceptor::Acceptor(EventLoop *_loop)
+Acceptor::Acceptor(EventLoop *_loop, const char *ip, uint16_t port)
     : loop(_loop), sock(nullptr), acceptChannel(nullptr) {
   sock = new Socket();
-  InetAddress *addr = new InetAddress("127.0.0.1", 8099);
+  InetAddress *addr = new InetAddress(ip, port);
   sock->bind(addr);
   sock->listen();
   // sock->setNoBlocking();

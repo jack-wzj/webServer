@@ -7,22 +7,24 @@
 #include <map>
 #include <vector>
 #include <functional>
+#include <cstdint>
 
 class EventLoop;
 class Socket;
 class Acceptor;
 class Connection;
 class ThreadPool;
+class SqlConnectPool;
 
 class Server {
 public:
-  Server(EventLoop *);
+  Server(EventLoop *, const char *ip, uint16_t port, const char *user, char *passwd, const char * dbname);
   ~Server();
 
   void newConnection(Socket *); // 新建TCP连接, 由Acceptor调用
   void deleteConnection(Socket *sock);   // 断开TCP连接
   void OnConnect(std::function<void(Connection *)>);
-
+  
 private:
   EventLoop *mainReactor; // 只负责接受连接，分发给一个 subReactor
   std::vector<EventLoop *> subReactors; // 负责处理连接上的读写事件
@@ -30,4 +32,5 @@ private:
   std::map<int, Connection *> connections; // TCP连接
   ThreadPool *threadPool;                  // 线程池
   std::function<void(Connection *)> onConnCallback;
+  SqlConnectPool *m_connPool; // 数据库连接池
 };

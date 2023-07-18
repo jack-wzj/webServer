@@ -6,6 +6,7 @@
 #include "Socket.h"
 #include "util.h"
 #include "ThreadPool.h"
+#include "SqlConnectPool.h"
 #include <functional>
 #include <unistd.h>
 #include <iostream>
@@ -15,8 +16,8 @@
  * @details 构造Server对象，初始化接收器
  * @param _loop 事件循环对象
  */
-Server::Server(EventLoop *_loop) : mainReactor(_loop), acceptor(nullptr), threadPool(nullptr) {
-  acceptor = new Acceptor(mainReactor); // 接收器只由 mainReactor 管理
+Server::Server(EventLoop *_loop, const char *ip, uint16_t port, const char *user, char *passwd, const char * dbname) : mainReactor(_loop), acceptor(nullptr), threadPool(nullptr) {
+  acceptor = new Acceptor(mainReactor, ip, port); // 接收器只由 mainReactor 管理
   // 将新连接的处理函数绑定到Acceptor的回调函数中
   std::function<void(Socket *)> cb =
       std::bind(&Server::newConnection, this, std::placeholders::_1);
@@ -32,6 +33,10 @@ Server::Server(EventLoop *_loop) : mainReactor(_loop), acceptor(nullptr), thread
     std::function<void()> subLoop = std::bind(&EventLoop::loop, subReactors[i]);
     threadPool->addTask(std::move(subLoop)); // 开启所有线程的事件循环
   }
+
+  // 初始化数据库连接池
+  m_connPool = SqlConnectPool::GetInstance();
+  m_connPool->init("localhost", user, passwd, dbname, 3306, 8);
 }
 
 /**
@@ -86,6 +91,5 @@ void Server::deleteConnection(Socket *sock) {
  * @param cb 回调函数
  */
 void Server::OnConnect(std::function<void(Connection *)> cb) {
-  std::cout << "Server::OnConnect()" << std::endl;
   onConnCallback = std::move(cb);
 }
