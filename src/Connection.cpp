@@ -20,12 +20,13 @@
  */
 Connection::Connection(EventLoop *_loop, Socket *_sock) : loop(_loop), sock(_sock) {
   if (loop != nullptr) {
-    channel = new Channel(loop, sock->getFd());
+    channel = std::make_unique<Channel>(loop, sock->getFd());
     channel->enableRead(); // 可读事件监听
     channel->useET();      // 边缘触发
   }
-  readBuffer = new Buffer();
-  writeBuffer = new Buffer();
+  readBuffer = std::make_unique<Buffer>();
+  writeBuffer = std::make_unique<Buffer>();
+
   state = State::Connected;
 }
 
@@ -33,12 +34,7 @@ Connection::Connection(EventLoop *_loop, Socket *_sock) : loop(_loop), sock(_soc
  * @brief Connection类的析构函数
  */
 Connection::~Connection() {
-  if (loop != nullptr) {
-    delete channel;
-  }
   delete sock;
-  delete readBuffer;
-  delete writeBuffer;
 }
 
 /**
@@ -212,7 +208,7 @@ void Connection::SetSendBuffer(const char *str) {
 }
 
 Buffer *Connection::GetReadBuffer() {
-    return readBuffer;
+    return readBuffer.get();
 }
 
 const char *Connection::ReadBuffer() {
@@ -220,7 +216,7 @@ const char *Connection::ReadBuffer() {
 }
 
 Buffer *Connection::GetSendBuffer() {
-    return writeBuffer;
+    return writeBuffer.get();
 }
 
 const char *Connection::SendBuffer() {

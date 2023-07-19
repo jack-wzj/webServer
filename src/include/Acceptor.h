@@ -6,6 +6,7 @@
 #pragma once
 #include <functional>
 #include <cstdint>
+#include <memory>
 
 class EventLoop;
 class Socket;
@@ -16,11 +17,11 @@ public:
   Acceptor(EventLoop *_loop, const char *ip, uint16_t port);
   ~Acceptor();
   void acceptConnection();
-  void setNewConnectionCallback(std::function<void(Socket *)>);
+  void setNewConnectionCallback(std::function<void(Socket *)> const &);
 
 private:
   EventLoop *loop;
-  Socket *sock;
-  Channel *acceptChannel;
+  std::unique_ptr<Socket> sock;
+  std::unique_ptr<Channel> acceptChannel;
   std::function<void(Socket *)> newConnectionCallback;
 };

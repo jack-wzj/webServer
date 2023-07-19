@@ -6,6 +6,7 @@
  */
 #pragma once
 #include <functional>
+#include <memory>
 
 class Epoll;
 class Channel;
@@ -20,6 +21,6 @@ public:
   void updateChannel(Channel *);
 
 private:
-  Epoll *ep;
+  std::unique_ptr<Epoll> ep;
   bool quit;
 };

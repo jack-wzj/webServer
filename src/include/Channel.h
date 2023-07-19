@@ -22,8 +22,8 @@ public:
   void setReady(uint32_t);
 
   void handleEvent();
-  void setReadCallback(std::function<void()>);
-  void setWriteCallback(std::function<void()>);
+  void setReadCallback(std::function<void()> const &);
+  void setWriteCallback(std::function<void()> const &);
   void useET();
 
 private:

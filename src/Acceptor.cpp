@@ -5,22 +5,19 @@
 
 Acceptor::Acceptor(EventLoop *_loop, const char *ip, uint16_t port)
     : loop(_loop), sock(nullptr), acceptChannel(nullptr) {
-  sock = new Socket();
+  sock = std::unique_ptr<Socket>(new Socket());
   InetAddress *addr = new InetAddress(ip, port);
   sock->bind(addr);
   sock->listen();
-  // sock->setNoBlocking();
-  acceptChannel = new Channel(loop, sock->getFd());
+
+  acceptChannel = std::unique_ptr<Channel>(new Channel(loop, sock->getFd()));
   std::function<void()> cb = std::bind(&Acceptor::acceptConnection, this);
   acceptChannel->setReadCallback(cb);
   acceptChannel->enableRead();
   delete addr;
 }
 
-Acceptor::~Acceptor() {
-  delete sock;
-  delete acceptChannel;
-}
+Acceptor::~Acceptor() {}
 
 void Acceptor::acceptConnection() {
   InetAddress *client_addr = new InetAddress();
@@ -32,6 +29,6 @@ void Acceptor::acceptConnection() {
   delete client_addr;
 }
 
-void Acceptor::setNewConnectionCallback(std::function<void(Socket *)> cb) {
-  newConnectionCallback = cb;
+void Acceptor::setNewConnectionCallback(std::function<void(Socket *)> const &cb) {
+  newConnectionCallback = std::move(cb);
 }

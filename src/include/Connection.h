@@ -6,6 +6,7 @@
 #pragma once
 #include <functional>
 #include <string>
+#include <memory>
 
 class EventLoop;
 class Socket;
@@ -50,15 +51,15 @@ public:
 private:
   EventLoop *loop;
   Socket *sock;
-  Channel *channel =  nullptr;
+  std::unique_ptr<Channel> channel;
   State state = State::Invalid;
   // 回调函数
   std::function<void(Socket *)> deleteConnCallback;
   std::function<void(Connection *)> onConnCallback;
   std::function<void(Connection *)> onMsgCallback;
   // 读写缓冲区
-  Buffer *readBuffer = nullptr;
-  Buffer *writeBuffer = nullptr;
+  std::unique_ptr<Buffer> readBuffer;
+  std::unique_ptr<Buffer> writeBuffer;
   // 读写事件处理函数
   void ReadNonBlocking();
   void WriteNonBlocking();

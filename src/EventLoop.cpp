@@ -8,13 +8,13 @@
  * @brief EventLoop类的构造函数
  * @details 初始化epoll对象
  */
-EventLoop::EventLoop() : ep(nullptr), quit(false) { ep = new Epoll(); }
+EventLoop::EventLoop() : ep(nullptr), quit(false) { ep = std::make_unique<Epoll>(); }
 
 /**
  * @brief EventLoop类的析构函数
  * @details 释放epoll对象
  */
-EventLoop::~EventLoop() { delete ep; }
+EventLoop::~EventLoop() {}
 
 /**
  * @brief 事件循环

@@ -91,14 +91,14 @@ void Channel::handleEvent() {
  * @brief 设置读事件发生的回调函数
  * @param callback 回调函数
  */
-void Channel::setReadCallback(std::function<void()> callback) {
-  this->readCallback = callback;
+void Channel::setReadCallback(std::function<void()> const &callback) {
+  this->readCallback = std::move(callback);
 }
 
 /**
  * @brief 设置写事件发生的回调函数
  * @param callback 回调函数
  */
-void Channel::setWriteCallback(std::function<void()> callback) {
-  this->writeCallback = callback;
+void Channel::setWriteCallback(std::function<void()> const &callback) {
+  this->writeCallback = std::move(callback);
 }

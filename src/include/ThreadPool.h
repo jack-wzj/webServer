@@ -17,7 +17,6 @@ public:
   ThreadPool(int threadNum = std::thread::hardware_concurrency());
   ~ThreadPool();
 
-  // void addTask(std::function<void()>);
   template <typename F, typename... Args>
   auto addTask(F &&f, Args &&...args)
       -> std::future<std::result_of_t<F(Args...)>>;
@@ -27,7 +26,7 @@ private:
   std::queue<std::function<void()>> tasks;
   std::mutex mutex;
   std::condition_variable cond;
-  bool stop;
+  std::atomic<bool> stop{false};
 };
 
 template <typename F, typename... Args>
