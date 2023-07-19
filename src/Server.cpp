@@ -58,14 +58,18 @@ void Server::newConnection(Socket *client_sock) {
   // TODO: subReactor 调度算法有没有更好的?
   // 随机调度，选择一个 subReactor 处理新连接
   int random = client_sock->getFd() % subReactors.size();
-  std::cout << "new connection, random " << random << std::endl;
+  // std::cout << "new connection, random " << random << std::endl;
   Connection *conn = new Connection(subReactors[random], client_sock);
   std::function<void(Socket *)> cb =
       std::bind(&Server::deleteConnection, this, std::placeholders::_1);
   conn->setDeleteConnectionCallback(cb);
   // 设置事务处理回调函数
-  conn->SetOnConnectCallback(onConnCallback);
+  // conn->SetOnConnectCallback(onConnCallback);
+  conn->SetOnMessageCallback(onMsgCallback);
   connections[client_sock->getFd()] = conn;
+  if (newConnallback) {
+    newConnallback(conn);
+  }
 }
 
 /**
@@ -92,4 +96,22 @@ void Server::deleteConnection(Socket *sock) {
  */
 void Server::OnConnect(std::function<void(Connection *)> cb) {
   onConnCallback = std::move(cb);
+}
+
+/**
+ * @brief 设置事务处理回调函数
+ * @details Connection
+ * @param cb 回调函数
+ */
+void Server::OnMessage(std::function<void(Connection *)> cb) {
+  onMsgCallback = std::move(cb);
+}
+
+/**
+ * @brief 设置新连接的回调函数
+ * @details Connection
+ * @param cb 回调函数
+ */
+void Server::NewConnect(std::function<void(Connection *)> cb) { 
+  newConnallback = std::move(cb); 
 }

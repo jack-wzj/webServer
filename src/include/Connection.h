@@ -5,6 +5,7 @@
  */
 #pragma once
 #include <functional>
+#include <string>
 
 class EventLoop;
 class Socket;
@@ -27,10 +28,15 @@ public:
 
   void Read();
   void Write();
+  // 向连接发送数据 msg
+  void Send(std::string msg);
+  // 业务逻辑
+  void Business();
 
   void setDeleteConnectionCallback(std::function<void(Socket *)> const &callback);
   void SetOnConnectCallback(std::function<void(Connection *)> const &callback);
-
+  void SetOnMessageCallback(std::function<void(Connection *)> const &callback);
+  
   State GetState();
   void Close();
   void SetSendBuffer(const char *str);
@@ -40,7 +46,7 @@ public:
   const char *SendBuffer();
   void GetlineSendBuffer();
   Socket *GetSocket();
-
+  
 private:
   EventLoop *loop;
   Socket *sock;
@@ -49,6 +55,7 @@ private:
   // 回调函数
   std::function<void(Socket *)> deleteConnCallback;
   std::function<void(Connection *)> onConnCallback;
+  std::function<void(Connection *)> onMsgCallback;
   // 读写缓冲区
   Buffer *readBuffer = nullptr;
   Buffer *writeBuffer = nullptr;

@@ -4,6 +4,7 @@
 #include <functional>
 #include <unistd.h>
 #include <cassert>
+#include <string>
 
 #include "Connection.h"
 #include "Buffer.h"
@@ -67,6 +68,14 @@ void Connection::Write() {
 }
 
 /**
+ * @brief 事务处理
+*/
+void Connection::Business() {
+  Read();
+  onMsgCallback(this);
+}
+
+/**
  * @brief 设置删除连接的回调函数
  * @param _cb 回调函数
  */
@@ -81,6 +90,16 @@ void Connection::setDeleteConnectionCallback(std::function<void(Socket *)> const
 void Connection::SetOnConnectCallback(std::function<void(Connection *)> const &_cb) {
   onConnCallback = _cb;
   channel->setReadCallback([this]() { onConnCallback(this); });
+}
+
+/**
+ * @brief 设置消息处理的回调函数
+ * @param callback 回调函数
+*/
+void Connection::SetOnMessageCallback(std::function<void(Connection *)> const &_cb) {
+  onMsgCallback = _cb;
+  std::function<void()> bus = std::bind(&Connection::Business, this);
+  channel->setReadCallback(bus);
 }
 
 /**
@@ -173,6 +192,11 @@ void Connection::WriteBlocking() {
     printf("Other error on blocking client fd %d\n", sockfd);
     state = State::Closed;
   }
+}
+
+void Connection::Send(std::string msg){
+    SetSendBuffer(msg.c_str());
+    Write();
 }
 
 void Connection::Close() {

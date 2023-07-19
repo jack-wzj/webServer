@@ -24,6 +24,9 @@ public:
   void newConnection(Socket *); // 新建TCP连接, 由Acceptor调用
   void deleteConnection(Socket *sock);   // 断开TCP连接
   void OnConnect(std::function<void(Connection *)>);
+  void NewConnect(std::function<void(Connection *)>);
+  void OnMessage(std::function<void(Connection *)>);
+  SqlConnectPool* getConnPool() { return m_connPool; }
   
 private:
   EventLoop *mainReactor; // 只负责接受连接，分发给一个 subReactor
@@ -32,5 +35,7 @@ private:
   std::map<int, Connection *> connections; // TCP连接
   ThreadPool *threadPool;                  // 线程池
   std::function<void(Connection *)> onConnCallback;
+  std::function<void(Connection *)> onMsgCallback;
+  std::function<void(Connection *)> newConnallback;
   SqlConnectPool *m_connPool; // 数据库连接池
 };
