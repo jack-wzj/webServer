@@ -49,7 +49,7 @@ public:
   Socket *GetSocket();
   Channel *GetChannel();
   
-private:
+protected:
   EventLoop *loop;
   Socket *sock;
   std::unique_ptr<Channel> channel;
