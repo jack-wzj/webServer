@@ -82,7 +82,7 @@ MYSQL *SqlConnectPool::GetConnection()
 //释放当前使用的连接
 bool SqlConnectPool::ReleaseConnection(MYSQL *con)
 {
-	if (NULL == con)
+	if (con == nullptr)
 		return false;
 	{
         std::lock_guard<std::mutex> locker(m_lock);
