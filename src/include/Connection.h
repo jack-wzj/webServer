@@ -47,6 +47,7 @@ public:
   const char *SendBuffer();
   void GetlineSendBuffer();
   Socket *GetSocket();
+  Channel *GetChannel();
   
 private:
   EventLoop *loop;

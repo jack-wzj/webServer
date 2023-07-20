@@ -5,8 +5,8 @@
 #include <unistd.h>
 
 /**
- * @brief Channel类构造函数
  * @param _loop 事件循环
+ * @brief Channel类构造函数
  * @param _fd 文件描述符
  */
 Channel::Channel(EventLoop *_loop, int _fd)

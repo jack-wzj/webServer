@@ -98,6 +98,10 @@ void Connection::SetOnMessageCallback(std::function<void(Connection *)> const &_
   channel->setReadCallback(bus);
 }
 
+Channel *Connection::GetChannel() {
+  return channel.get();
+}
+
 /**
  * @brief 非阻塞读数据
  * @details 使用非阻塞IO，一次读取buf大小数据，直到全部读取完毕
